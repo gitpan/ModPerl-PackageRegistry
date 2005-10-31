@@ -4,9 +4,9 @@ use 5.006;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-use Apache2::Const qw(TAKE1 OR_ALL DECLINED NOT_FOUND SERVER_ERROR);
+use Apache2::Const qw(TAKE1 OR_ALL DECLINED NOT_FOUND SERVER_ERROR FORBIDDEN);
 use Apache2::RequestRec ();
 use Apache2::CmdParms ();
 use Apache2::Directive ();
@@ -84,6 +84,11 @@ sub handler {
             
     my $path = substr($r->uri, length $base);
 
+    if($path =~ m{[; ]}) {
+        $r->log->error("$uri: HACKING ATTEMPT: URI with a space or semicolon in it's name!");
+        return FORBIDDEN;
+    }
+    
     $path =~ s{^/}{}g;
     $path =~ s{\..+$}{};
     $path =~ s{/}{::}g;
